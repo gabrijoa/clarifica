@@ -38,7 +38,6 @@ def extract_and_save_images_from_page(page: pymupdf.Page, doc: pymupdf.Document,
         if base_image.get("width", 0) < MIN_IMAGE_DIMENSION or base_image.get("height", 0) < MIN_IMAGE_DIMENSION:
             continue
 
-        # --- REVISED LOGIC ---
         # Use a consistent, unique filename based on the image's xref ID
         image_ext = base_image["ext"]
         image_filename = f"image_{xref}.{image_ext}"
@@ -55,9 +54,9 @@ def extract_and_save_images_from_page(page: pymupdf.Page, doc: pymupdf.Document,
         img_bbox = page.get_image_bbox(img)
         if img_bbox:
             image_info_list.append({
-                "type": 1,
+                "type": 1, # 1 signifies an image block
                 "bbox": img_bbox,
-                "path": image_path  # The path now correctly points to the unique file
+                "path": image_path
             })
             
     return image_info_list
