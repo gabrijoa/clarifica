@@ -1,4 +1,5 @@
 # clarifica/extractor.py
+# Versão Final - Nenhuma alteração foi necessária na refatoração.
 
 import pymupdf
 import os
@@ -7,23 +8,25 @@ from typing import List, Dict, Any, Set
 MIN_IMAGE_DIMENSION = 100
 
 def extract_all_text_blocks(doc: pymupdf.Document) -> List[Dict[str, Any]]:
-    """Extracts all text blocks from the entire document for pre-analysis."""
+    """Extrai todos os blocos de texto do documento inteiro para pré-análise."""
     all_blocks = []
     for page in doc:
+        # Usamos "dict" para obter a estrutura de blocos
         blocks = page.get_text("dict").get("blocks", [])
-        text_blocks = [b for b in blocks if b["type"] == 0]
+        # Filtramos para manter apenas blocos de texto (type == 0)
+        text_blocks = [b for b in blocks if b.get("type") == 0]
         all_blocks.extend(text_blocks)
     return all_blocks
 
 def extract_text_blocks_from_page(page: pymupdf.Page) -> List[Dict[str, Any]]:
-    """Extracts all raw text block data from a single page."""
+    """Extrai todos os dados brutos de blocos de texto de uma única página."""
     blocks = page.get_text("dict").get("blocks", [])
-    return [b for b in blocks if b["type"] == 0]
+    return [b for b in blocks if b.get("type") == 0]
 
 def extract_and_save_images_from_page(page: pymupdf.Page, doc: pymupdf.Document, output_folder: str, saved_xrefs: Set[int]) -> List[Dict[str, Any]]:
     """
-    Finds all relevant images on a page, returns their metadata, and saves
-    the image file to disk only if it's a new, unique image.
+    Encontra todas as imagens relevantes em uma página, retorna seus metadados e
+    salva o arquivo de imagem no disco apenas se for uma imagem nova e única.
     """
     image_info_list = []
     if not os.path.exists(output_folder):
@@ -32,29 +35,30 @@ def extract_and_save_images_from_page(page: pymupdf.Page, doc: pymupdf.Document,
     for img in page.get_images(full=True):
         xref = img[0]
         
+        # Extrai os metadados base da imagem
         base_image = doc.extract_image(xref)
 
-        # First, filter out small, irrelevant images
-        if base_image.get("width", 0) < MIN_IMAGE_DIMENSION or base_image.get("height", 0) < MIN_IMAGE_DIMENSION:
+        # Filtra imagens pequenas ou irrelevantes
+        if not base_image or base_image.get("width", 0) < MIN_IMAGE_DIMENSION or base_image.get("height", 0) < MIN_IMAGE_DIMENSION:
             continue
 
-        # Use a consistent, unique filename based on the image's xref ID
+        # Usa um nome de arquivo consistente e único baseado no xref da imagem
         image_ext = base_image["ext"]
         image_filename = f"image_{xref}.{image_ext}"
         image_path = os.path.join(output_folder, image_filename)
 
-        # Responsibility 1: Save the file to disk ONLY if it's new
+        # Responsabilidade 1: Salvar o arquivo no disco APENAS se for novo
         if xref not in saved_xrefs:
             image_bytes = base_image["image"]
             with open(image_path, "wb") as img_file:
                 img_file.write(image_bytes)
             saved_xrefs.add(xref)
 
-        # Responsibility 2: ALWAYS return the metadata for this image instance
+        # Responsabilidade 2: SEMPRE retornar os metadados para esta instância da imagem
         img_bbox = page.get_image_bbox(img)
         if img_bbox:
             image_info_list.append({
-                "type": 1, # 1 signifies an image block
+                "type": 1, # 1 significa um bloco de imagem
                 "bbox": img_bbox,
                 "path": image_path
             })
