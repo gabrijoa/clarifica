@@ -48,10 +48,6 @@ O Clarifica utiliza uma arquitetura em três fases para garantir um resultado ro
 ## Como Usar
 
 1.  **Clone o repositório:**
-    ```bash
-    git clone [https://github.com/SEU_USUARIO/clarifica.git](https://github.com/SEU_USUARIO/clarifica.git)
-    cd clarifica
-    ```
 
 2.  **Instale as dependências com o Poetry:**
     ```bash
@@ -89,3 +85,4 @@ O Clarifica utiliza uma arquitetura em três fases para garantir um resultado ro
 ## Licença
 
 Este projeto está sob a licença MIT.
+
